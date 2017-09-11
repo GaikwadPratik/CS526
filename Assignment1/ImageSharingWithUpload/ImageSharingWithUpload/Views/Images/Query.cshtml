@@ -1,0 +1,15 @@
+﻿
+@{
+    ViewBag.Title = "Query";
+}
+
+@using (Html.BeginForm("Details", "Images", FormMethod.Get))
+{
+    <fieldset>
+        <legend>Enter image information</legend>
+        Image Id: @Html.TextBox("Id")
+        <input type="submit" value="Query" />
+    </fieldset>
+    @ViewBag.Message
+}
+

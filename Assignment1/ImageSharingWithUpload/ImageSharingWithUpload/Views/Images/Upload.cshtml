@@ -1,0 +1,36 @@
+﻿@model ImageSharingWithUpload.Models.Image
+
+@{
+    ViewBag.Title = "Upload an image";
+}
+
+@using (Html.BeginForm("Upload", "Images", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    <fieldset>
+        Enter image information
+        <div>
+            @Html.LabelFor(x=>x.Id): @Html.TextBoxFor(x => x.Id)
+            @Html.ValidationMessage("Id")
+        </div>
+        <div>
+            @Html.LabelFor(x => x.Caption): @Html.TextBoxFor(x => x.Caption)
+            @Html.ValidationMessage("Caption")
+        </div>
+        <div>
+            @Html.LabelFor(x => x.Description): <br />
+            @Html.TextAreaFor(x => x.Description, 5, 40, new { value = "Enter description here" })
+            @Html.ValidationMessage("Description")
+        </div>
+        <div>
+            @Html.LabelFor(x => x.DateTaken): @Html.TextBoxFor(x => x.DateTaken)
+        </div>
+        <div>
+            @Html.TextBox("ImageFile", "", new { type = "file", accept = ".jpeg,.jpg" }) <br />
+        </div>
+        <input type="submit" value="Upload" />
+    </fieldset>
+
+    @Html.ValidationSummary()
+    @ViewBag.Message
+}
+
