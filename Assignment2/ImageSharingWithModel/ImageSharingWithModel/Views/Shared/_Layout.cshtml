@@ -1,0 +1,69 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - Image sharing upload application</title>
+    @{
+        if (ViewBag != null && ViewBag.IsAda != null && (bool)(ViewBag.IsAda))
+        {
+            if (Context.IsDebuggingEnabled)
+            {
+                <link href="~/Styles/Site_ADA" rel="stylesheet" type="text/css" />
+            }
+            else
+            {
+                Styles.Render("~/Styles/Site_ADA");
+            }
+        }
+        else
+        {
+            if (Context.IsDebuggingEnabled)
+            {
+                <link href="~/Styles/Site" rel="stylesheet" type="text/css" />
+            }
+            else
+            {
+                Styles.Render("~/Styles/Site");
+            }
+        }
+    }
+    @Scripts.Render("~/bundles/modernizr")
+</head>
+<body class="twoColumnHdrFtr">
+
+    <div id="container">
+        <header id="header">
+            <img alt="Header Background" src="~/Content/SiteImages/HeaderBackground.jpg" style="width:100%;"/>
+        </header>
+
+        <nav id="nav">
+            <ul>
+                <li>@Html.ActionLink("Register", "Register", "Account")</li>
+                <li>@Html.ActionLink("Login", "Login", "Account")</li>
+                <li>@Html.ActionLink("Upload", "Upload", "Images")</li>
+                <li>@Html.ActionLink("ListAll", "ListAll", "Images")</li>
+                <li>@Html.ActionLink("ListByTag", "ListByTag", "Images")</li>
+                <li>@Html.ActionLink("ListByUser", "ListByUser", "Images")</li>
+            </ul>
+        </nav>
+
+        <aside id="sidebar">
+            <h1>Links</h1>
+            <p><a href="https://github.com/GaikwadPratik">My Git page</a></p>
+            <p><a href="http://www.stevens.edu">Stevens home page</a></p>
+        </aside>
+        @RenderBody()
+        <hr />
+        <footer id="footer">
+            <p>&copy; @DateTime.Now.Year - Image sharing upload application</p>
+        </footer>
+
+    </div>
+
+
+
+    @Scripts.Render("~/bundles/jquery")
+    @RenderSection("scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,20 @@
+﻿
+@{
+    ViewBag.Title = "Login";
+}
+
+<h2>@ViewBag.Title</h2>
+
+@using (Html.BeginForm("Login", "Account", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    <fieldset>
+        <div>
+            Enter user id of your choice: @Html.TextBox("UserId")
+            @Html.ValidationMessage("UserId")
+        </div>
+        <br />
+        <input type="submit" value="Login" />
+        @ViewBag.Message
+    </fieldset>
+}
+

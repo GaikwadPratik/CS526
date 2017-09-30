@@ -1,0 +1,42 @@
+﻿@model ImageSharingWithModel.Models.ImageViewModel
+@{
+    ViewBag.Title = "Edit Image";
+}
+
+<h2>@ViewBag.Title</h2>
+
+
+@using (Html.BeginForm("Edit", "Images", FormMethod.Post))
+{
+    <fieldset>
+        <legend> Edit Image Information</legend>
+
+        @Html.HiddenFor(m => m.Id)
+
+        <p><img src="@Url.Content("~/Content/Images/img-" + @Model.Id + ".jpg")" style="width:70%" /></p>
+        <p>Image Id: @Model.Id</p>
+        <p>
+            Caption: @Html.TextBoxFor(m => m.Caption)
+            @Html.ValidationMessageFor(m => m.Caption)
+        </p>
+        <p>
+            Select a Tag : @Html.DropDownListFor(m => m.TagId, ViewBag.Tags as SelectList)
+            @Html.ValidationMessageFor(m => m.TagId)
+        </p>
+        <p>
+            Description:<br />
+            @Html.TextAreaFor(m => m.Description, 5, 50, null)
+            @Html.ValidationMessageFor(m => m.Description)
+        </p>
+        <p>
+            Date Taken: @Html.TextBoxFor(m => m.DateTaken)
+            @Html.ValidationMessageFor(m => m.DateTaken)
+        </p>
+        <p>
+            <input type="submit" value="Edit" />
+        </p>
+    </fieldset>
+
+    <p>@Html.ValidationSummary()</p>
+
+}
