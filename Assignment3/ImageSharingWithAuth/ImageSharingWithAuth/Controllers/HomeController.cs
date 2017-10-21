@@ -1,5 +1,4 @@
-﻿using ImageSharingWithAuth.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -7,61 +6,24 @@ using System.Web.Mvc;
 
 namespace ImageSharingWithAuth.Controllers
 {
-    public class HomeController : BaseController
+    public class HomeController : Controller
     {
-        public ActionResult Index(string id = "Stranger")
+        public ActionResult Index()
         {
-            SetIsAda();
-            ViewBag.Title = "Welcome";
-            User _loggedInUserId = GetLoggedInUser();
-            ViewBag.Id = _loggedInUserId != null ? _loggedInUserId.Userid : id;
             return View();
         }
 
-        public ActionResult Error(String errid = "Unspecified")
+        public ActionResult About()
         {
-            SetIsAda();
-            if ("Details".Equals(errid))
-            {
-                ViewBag.Message = "Problem With Details Action";
-            }
-            else if ("Upload".Equals(errid))
-            {
-                ViewBag.Message = "Problem With Upload Action";
-            }
-            else if ("UploadNotAuth".Equals(errid))
-            {
-                ViewBag.Message = "Problem With Upload Action";
-            }
-            else if ("EditNotAuth".Equals(errid))
-            {
-                ViewBag.Message = "Problem With Edit Action";
-            }
-            else if ("EditNotFound".Equals(errid))
-            {
-                ViewBag.Message = "Problem With Edit Action";
-            }
+            ViewBag.Message = "Your application description page.";
 
-            else if ("DeleteNotAuth".Equals(errid))
-            {
-                ViewBag.Message = "Problem With Delete Action";
-            }
-            else if ("DeleteNotFound".Equals(errid))
-            {
-                ViewBag.Message = "Problem With Delete Action";
-            }
-            else if ("ListByUser".Equals(errid))
-            {
-                ViewBag.Message = "Problem With ListByUser Action";
-            }
-            else if ("ListByTag".Equals(errid))
-            {
-                ViewBag.Message = "Problem With ListByTag Action";
-            }
-            else
-            {
-                ViewBag.Message = "Unspecified Error";
-            }
+            return View();
+        }
+
+        public ActionResult Contact()
+        {
+            ViewBag.Message = "Your contact page.";
+
             return View();
         }
     }
