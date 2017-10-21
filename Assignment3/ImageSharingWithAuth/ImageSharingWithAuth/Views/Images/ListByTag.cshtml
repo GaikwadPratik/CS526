@@ -1,0 +1,21 @@
+﻿@model SelectList
+@{
+    ViewBag.Title = "ListByTag";
+}
+
+<h2>@ViewBag.Title</h2>
+
+@using (Html.BeginForm("DoListByTag", "Images", FormMethod.Get))
+{
+    <fieldset>
+        <legend>Choose a Tag</legend>
+        <p>
+            Tag: @Html.DropDownList("Id", Model)
+        </p>
+
+        <p>
+            <input type="submit" value="List" />
+        </p>
+    </fieldset>
+}
+
