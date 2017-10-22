@@ -35,17 +35,22 @@
 
     <div id="container">
         <header id="header">
+            <div class ="userNameTop">@User.Identity.Name</div>
             <img alt="Header Background" src="~/Content/SiteImages/HeaderBackground.jpg" style="width:100%;"/>
         </header>
 
         <nav id="nav">
             <ul>
+                <li>@Html.ActionLink("Login", "Login", "Account")</li>             
                 <li>@Html.ActionLink("Register", "Register", "Account")</li>
+                <li>@Html.ActionLink("Upload","Upload", "Image")</li>
+                <li>@Html.ActionLink("List All", "ListAll", "Image")</li>
+                <li>@Html.ActionLink("List by User", "ListByUser", "Image")</li>
+                <li>@Html.ActionLink("List by Tag", "ListByTag", "Image")</li>
+                <li>@Html.ActionLink("Deactivate", "Deactivate", "Account")</li>
+                <li>@Html.ActionLink("Approve", "Approve", "Image")</li>
                 <li>@Html.ActionLink("Login", "Login", "Account")</li>
-                <li>@Html.ActionLink("Upload", "Upload", "Images")</li>
-                <li>@Html.ActionLink("ListAll", "ListAll", "Images")</li>
-                <li>@Html.ActionLink("ListByTag", "ListByTag", "Images")</li>
-                <li>@Html.ActionLink("ListByUser", "ListByUser", "Images")</li>
+                
             </ul>
         </nav>
 

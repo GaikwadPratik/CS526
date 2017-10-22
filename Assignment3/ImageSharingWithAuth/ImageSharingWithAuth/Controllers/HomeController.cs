@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ImageSharingWithAuth.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -9,7 +10,7 @@ namespace ImageSharingWithAuth.Controllers
     public class HomeController : BaseController
     {
         [AllowAnonymous]
-        public ActionResult Index( string id = "Stranger")
+        public ActionResult Index(string id = "Stranger")
         {
             SetIsAda();
             ViewBag.Title = $"Welcome ";

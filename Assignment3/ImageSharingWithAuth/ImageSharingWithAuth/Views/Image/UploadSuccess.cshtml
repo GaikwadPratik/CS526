@@ -1,0 +1,13 @@
+﻿
+@{
+    ViewBag.Title = "Upload Success";
+}
+ 
+@model ImageSharingWithAuth.Models.Image
+
+<h2>@ViewBag.Title</h2>
+
+<p>Caption: @Model.Caption</p>
+<p>Description: <br/>@Model.Description</p>
+<p>Date Taken: @Model.DateTaken.ToShortDateString()</p>
+<p>Uploader: @Model.UserId</p>
