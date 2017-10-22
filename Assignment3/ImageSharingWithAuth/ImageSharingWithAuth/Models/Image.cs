@@ -21,11 +21,12 @@ namespace ImageSharingWithAuth.Models
         public virtual DateTime DateTaken { get; set; }
 
         [ForeignKey("User")]
-        public virtual int UserId { get; set; }
-        public virtual User User { get; set; }
+        public virtual string UserId { get; set; }
+        public virtual ApplicationUser User { get; set; }
 
         [ForeignKey("Tag")]
         public virtual int TagId { get; set; }
         public virtual Tag Tag { get; set; }
+        public virtual bool IsApproved { get; set; }
     }
 }

@@ -6,10 +6,24 @@ using System.Web.Mvc;
 
 namespace ImageSharingWithAuth.Controllers
 {
-    public class HomeController : Controller
+    public class HomeController : BaseController
     {
-        public ActionResult Index()
+        [AllowAnonymous]
+        public ActionResult Index( string id = "Stranger")
         {
+            SetIsAda();
+            ViewBag.Title = $"Welcome ";
+            ApplicationUser _user = GetLoggedInUser();
+            ViewBag.Id = _user != null ? _user.UserName : id;
+            return View();
+        }
+
+        public ActionResult Error(string errid = "Unspecified")
+        {
+            if ("Details".Equals(errid, StringComparison.OrdinalIgnoreCase))
+                ViewBag.Message = "Problem with Details action!";
+            else
+                ViewBag.Message = "Unspecified error!";
             return View();
         }
 

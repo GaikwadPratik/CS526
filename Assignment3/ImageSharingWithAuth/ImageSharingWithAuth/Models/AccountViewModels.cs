@@ -8,6 +8,10 @@ namespace ImageSharingWithAuth.Models
         [Required]
         [Display(Name = "Email")]
         public string Email { get; set; }
+
+        [Required]
+        [Display(Name ="UserName")]
+        public string UserName { get; set; }
     }
 
     public class ExternalLoginListViewModel
@@ -79,6 +83,10 @@ namespace ImageSharingWithAuth.Models
         [Display(Name = "Confirm password")]
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; }
+
+        [Required]
+        [Display(Name = "Do you need visual aid while navigating site?")]
+        public bool ADA { get; set; }
     }
 
     public class ResetPasswordViewModel

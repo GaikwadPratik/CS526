@@ -3,7 +3,7 @@ using ImageSharingWithAuth.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Data.Entity;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
@@ -17,34 +17,26 @@ namespace ImageSharingWithAuth.Controllers
             "jpg", "jpeg"
         };
 
-        private ImageDb _db = new ImageDb();
-
         // GET: Images
         [HttpGet]
         public ActionResult Upload()
         {
             SetIsAda();
-            User _user = GetLoggedInUser();
-            if (_user == null)
-                return RedirectToLogin();
-            else
-            {
-                ViewBag.Message = string.Empty;
-                ViewBag.Tags = new SelectList(_db.Tags, "Id", "Name", 1);
-                return View();
-            }
+            ViewBag.Message = string.Empty;
+            SelectList _tags = new SelectList(ApplicationDbContext.Tags, "Id", "Name", 1);
+            ViewBag.Tags = _tags;
+            return View();
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Upload(ImageViewModel Image, HttpPostedFileBase ImageFile)
         {
             SetIsAda();
             TryValidateModel(Image);
-            ViewBag.Tags = new SelectList(_db.Tags, "Id", "Name", 1);
             if (ModelState.IsValid)
             {
-                User _user = GetLoggedInUser();
-
+                ApplicationUser _user = GetLoggedInUser();
                 if (_user != null)
                 {
                     Image _image = new Models.Image()
@@ -64,26 +56,28 @@ namespace ImageSharingWithAuth.Controllers
                             return View();
                         }
 
-                        double _dFileSize = 1;
-                        if (((double)ImageFile.ContentLength / (1024 * 1024)) > _dFileSize)
-                        {
-                            ViewBag.ImageValidation = "File size is greater";
-                            return View();
-                        }
+                        ApplicationDbContext.Images.Add(_image);
+                        ApplicationDbContext.SaveChanges();
 
-                        DB.Images.Add(_image);
-                        DB.SaveChanges();
+                        string _strImageFileName = Server.MapPath($"~/Content/Images/img-{_image.Id}.jpg");
+                        ImageFile.SaveAs(_strImageFileName);
 
-                        string imgFileName = Server.MapPath("~/Content/Images/img-" + _image.Id + ".jpg");
-                        ImageFile.SaveAs(imgFileName);
-                        return RedirectToAction("Details", new { Id = _image.Id });
+                        ViewBag.tags = new SelectList(ApplicationDbContext.Tags, "Id", "Name", 1);
+                        ViewBag.SuccessMessages = "Upload Successful";
+                        ModelState.Clear();
+                        return View();
                     }
                     else
-                        //If issue with image upload
-                        return RedirectToAction("Error", "Home", new { errid = "Upload" });
+                    {
+                        ViewBag.Message = "No image file specified";
+                        return View();
+                    }
                 }
                 else
-                    return RedirectToLogin();
+                {
+                    ViewBag.Message = "No such user registered";
+                    return View();
+                }
             }
             else
             {
@@ -96,118 +90,109 @@ namespace ImageSharingWithAuth.Controllers
         public ActionResult Query()
         {
             SetIsAda();
-            if (GetLoggedInUser() != null)
-            {
-                ViewBag.Message = string.Empty;
-                return View();
-            }
-            else
-            {
-                return RedirectToLogin();
-            }
+
+            ViewBag.Message = string.Empty;
+            return View();
         }
 
         [HttpGet]
-        public ActionResult Details(int id)
+        public ActionResult Details(int Id)
         {
             SetIsAda();
-            if (GetLoggedInUser() == null)
-                return RedirectToLogin();
-            else
+            Image _image = ApplicationDbContext.Images.Find(Id);
+            bool _bIsPreview = false;
+            if (TempData["Preview"] != null)
+                _bIsPreview = Convert.ToBoolean(TempData["Preview"]);
+
+            if (_image != null && (_image.IsApproved || _bIsPreview))
             {
-                Image _image = DB.Images.Find(id);
-                if (_image != null)
+                ImageViewModel _imageViewModel = new ImageViewModel()
                 {
-                    ImageViewModel _imageViewModel = new ImageViewModel()
-                    {
-                        Id = _image.Id,
-                        Caption = _image.Caption,
-                        Description = _image.Description,
-                        DateTaken = _image.DateTaken,
-                        TagName = _image.Tag.name,
-                        UserId = _image.User.Userid
-                    };
-                    return View(_imageViewModel);
-                }
-                else
-                    return RedirectToAction("Error", "Home", new { errid = "Details" });
+                    Id = _image.Id,
+                    Caption = _image.Caption,
+                    Description = _image.Description,
+                    DateTaken = _image.DateTaken,
+                    TagName = _image.Tag.Name,
+                    UserId = _image.User.Email
+                };
+                return View(_image);
             }
+            else
+                return View((ImageViewModel)null);
         }
 
         [HttpGet]
         public ActionResult Edit(int Id)
         {
             SetIsAda();
-            User _user = GetLoggedInUser();
-            if (_user == null)
-                return RedirectToLogin();
-            else
+            Image _image = ApplicationDbContext.Images.Find(Id);
+            if (_image != null)
             {
-                Image _image = DB.Images.Find(Id);
-                if (_image != null)
+                ApplicationUser _user = GetLoggedInUser();
+                if (_image.User.UserName.Equals(_user.Email, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (_image.User.Userid.Equals(_user.Userid, StringComparison.OrdinalIgnoreCase))
+                    ViewBag.Message = string.Empty;
+                    ViewBag.Tags = new SelectList(ApplicationDbContext.Tags, "Id", "Name", _image.TagId);
+                    ImageViewModel _imageViewModel = new ImageViewModel()
                     {
-                        ViewBag.Message = string.Empty;
-                        ViewBag.Tags = new SelectList(DB.Tags, "Id", "name", _image.TagId);
-                        ImageViewModel _imageViewModel = new ImageViewModel()
-                        {
-                            Id = _image.Id,
-                            TagId = _image.TagId,
-                            Caption = _image.Caption,
-                            Description = _image.Description,
-                            DateTaken = _image.DateTaken
-                        };
-                        return View("Edit", _imageViewModel);
-                    }
-                    else
-                        return RedirectToAction("Error", "Home", new { errid = "EditNotAuth" });
+                        Id = _image.Id,
+                        TagId = _image.TagId,
+                        Caption = _image.Caption,
+                        Description = _image.Description,
+                        DateTaken = _image.DateTaken
+                    };
+                    return View("Edit", _image);
                 }
                 else
-                    return RedirectToAction("Error", "Home", new { errid = "EditNotFound" });
+                    return RedirectToAction("Error", "Home", new { errid = "EditNotAuth" });
+            }
+            else
+            {
+                ViewBag.Message = $"Image with Identifier {Id} not found";
+                ViewBag.Id = Id;
+                return RedirectToAction("Error", "Home", new { errid = "EditNotAuth" });
             }
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Edit(int Id, ImageViewModel ImageViewModel)
         {
             SetIsAda();
-            User _user = GetLoggedInUser();
-            if (_user == null)
-                return RedirectToLogin();
-            else
+            ApplicationUser _user = GetLoggedInUser();
+            try
             {
-                Image _image = DB.Images.Find(Id);
-                ViewBag.Tags = new SelectList(DB.Tags, "Id", "Name", _image.TagId);
-
+                Image _image = ApplicationDbContext.Images.Find(Id);
+                ViewBag.Tags = new SelectList(ApplicationDbContext.Tags, "Id", "Name", _image.TagId);
                 if (ModelState.IsValid)
                 {
-                    if (_image != null)
+                    if (_image.User.UserName.Equals(_user.Email))
                     {
-                        if (_image.User.Userid.Equals(_user.Userid, StringComparison.OrdinalIgnoreCase))
-                        {
-                            _image.TagId = ImageViewModel.TagId;
-                            _image.Caption = ImageViewModel.Caption;
-                            _image.Description = ImageViewModel.Description;
-                            _image.DateTaken = ImageViewModel.DateTaken;
-                            DB.Entry(_image).State = System.Data.Entity.EntityState.Modified;
-                            DB.SaveChanges();
-                            return RedirectToAction("Details", new { Id = Id });
-                        }
-                        else
-                        {
-                            return RedirectToAction("Error", "Home", new { errid = "EditNotAuth" });
-                        }
+                        ViewBag.Message = string.Empty;
+                        _image.TagId = ImageViewModel.TagId;
+                        _image.Caption = ImageViewModel.Caption;
+                        _image.Description = ImageViewModel.Description;
+                        _image.IsApproved = false;
+                        _image.DateTaken = ImageViewModel.DateTaken;
+
+                        ApplicationDbContext.Entry(_image).State = EntityState.Modified;
+                        ApplicationDbContext.SaveChanges();
+
+                        ViewBag.SuccessMessage = "Image changes saved";
+                        TempData["Preview"] = true;
+                        return RedirectToAction("Details", new { Id = Id });
                     }
                     else
-                        return RedirectToAction("Error", "Home", new { errid = "EditNotFound" });
+                        return RedirectToAction("Error", "Home", new { errid = "EditNotAuth" });
+
                 }
                 else
-                {
-                    ViewBag.Message = "Please Correct All the errors";
-                    _image.Id = Id;
-                    return View("Edit", _image);
-                }
+                    return RedirectToAction("Error", "Home", new { errid = "EditNotFind" });
+
+            }
+            catch (Exception ex)
+            {
+                return RedirectToAction("Error", "Home");
             }
         }
 
@@ -215,12 +200,9 @@ namespace ImageSharingWithAuth.Controllers
         public ActionResult Delete(int Id)
         {
             SetIsAda();
-            User _user = GetLoggedInUser();
-            if (_user == null)
-                return RedirectToLogin();
-            else
+            try
             {
-                Image _image = DB.Images.Find(Id);
+                Image _image = ApplicationDbContext.Images.Find(Id);
                 if (_image != null)
                 {
                     ImageViewModel _imageViewModel = new ImageViewModel()
@@ -229,123 +211,167 @@ namespace ImageSharingWithAuth.Controllers
                         DateTaken = _image.DateTaken,
                         Description = _image.Description,
                         Caption = _image.Caption,
-                        TagName = _image.Tag.name,
-                        UserId = _image.User.Userid
+                        TagName = _image.Tag.Name,
+                        UserId = _image.User.Email
                     };
                     return View(_imageViewModel);
                 }
                 else
                     return RedirectToAction("Error", "Home", new { errid = "Details" });
             }
+            catch (Exception ex)
+            {
+                return RedirectToAction("Error", "Home");
+            }
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Delete(FormCollection values, int Id)
         {
             SetIsAda();
-            User _user = GetLoggedInUser();
-            if (User == null)
-                return RedirectToLogin();
-            else
+            ApplicationUser _user = GetLoggedInUser();
+            if (_user != null)
             {
-                Image _image = DB.Images.Find(Id);
-                if (_image != null)
+                try
                 {
-                    if (_image.User.Userid.Equals(_user.Userid, StringComparison.OrdinalIgnoreCase))
+                    Image _image = ApplicationDbContext.Images.Find(Id);
+                    if (_image != null)
                     {
-                        DB.Images.Remove(_image);
-                        DB.SaveChanges();
-                        return RedirectToAction("Index", "Home");
+                        if (_image.User.UserName.Equals(_user.Email, StringComparison.OrdinalIgnoreCase))
+                        {
+                            ApplicationDbContext.Images.Remove(_image);
+                            ApplicationDbContext.SaveChanges();
+                            string _strFileName = Server.MapPath($"~/Content/Images/img-{_image.Id}.jpg");
+                            return RedirectToAction("Index", "Home");
+                        }
+                        else
+                            return RedirectToAction("Error", "Home", new { errid = "DeleteNotAuth" });
                     }
                     else
-                        return RedirectToAction("Error", "Home", new { errid = "DeleteNotAuth" });
+                    {
+                        return RedirectToAction("Error", "Home", new { errid = "DeleteNotFound" });
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    return RedirectToAction("Error", "Home", new { errid = "DeleteNotFound" });
+                    return RedirectToAction("Error", "Home");
                 }
             }
-        }
-
-        [HttpGet]
-        public ActionResult ListByUser()
-        {
-            SetIsAda();
-            SelectList _users = new SelectList(DB.Users, "Id", "Userid", 1);
-            User _user = GetLoggedInUser();
-            if (_user == null)
-                return RedirectToLogin();
             else
-            {
-                ViewBag.Userid = _user.Userid;
-                return View(_users);
-            }
-        }
-
-        [HttpGet]
-        public ActionResult DoListByUser(int Id)
-        {
-            SetIsAda();
-
-            User _user = GetLoggedInUser();
-            if (_user == null)
                 return RedirectToLogin();
-            else
-            {
-                ViewBag.Userid = _user.Userid;
-                return View("ListAll", _user.Images);
-            }
         }
 
         [HttpGet]
         public ActionResult ListAll()
         {
             SetIsAda();
-            List<Image> _images = DB.Images.ToList();
-            User _user = GetLoggedInUser();
-            if (_user == null)
-                return RedirectToLogin();
-            else
-            {
-                ViewBag.Userid = _user.Userid;
-                return View(_images);
-            }
+            ApplicationUser _user = GetLoggedInUser();
+            ViewBag.Userid = _user.Email;
+            return View(ApprovedImages);
         }
 
         [HttpGet]
-        public ActionResult DoListByTag(int Id)
+        public ActionResult ListByUser()
         {
             SetIsAda();
-            User _user = GetLoggedInUser();
-            if (_user == null)
-                return RedirectToLogin();
-            else
+            List<ApplicationUser> _activeUsers = ApplicationDbContext.Users.Where(x => x.IsActive).ToList();
+            SelectList _users = new SelectList(_activeUsers, "Id", "Email", 1);
+            return View(_users);
+        }
+
+        [HttpGet]
+        public ActionResult DoListByUser(string Id)
+        {
+            SetIsAda();
+
+            ApplicationUser _loggedInUser = GetLoggedInUser();
+            ApplicationUser _user = ApplicationDbContext.Users.Find(Id);
+            if (_user != null)
             {
-                Tag _tag = DB.Tags.Find(Id);
-                if (_tag != null)
-                {
-                    ViewBag.Userid = _user.Userid;
-                    return View("ListAll", _tag.Images);
-                }
-                else
-                    return RedirectToAction("Error", "Home", new { errid = "ListByTag" });
+                ViewBag.UserId = _user.Email;
+                return View("ListAll", GetApprovedImages(_user.Images));
             }
+            else
+                return RedirectToAction("Error", "Home", new { errid = "ListByUser" });
         }
 
         [HttpGet]
         public ActionResult ListByTag()
         {
             SetIsAda();
-            SelectList tags = new SelectList(DB.Tags, "Id", "Name", 1);
-            User _user = GetLoggedInUser();
-            if (_user == null)
-                return RedirectToLogin();
-            else
+            SelectList tags = new SelectList(ApplicationDbContext.Tags, "Id", "Name", 1);
+            return View(tags);
+        }
+
+        [HttpGet]
+        public ActionResult DoListByTag(int Id)
+        {
+            SetIsAda();
+            ApplicationUser _user = GetLoggedInUser();
+            Tag _tag = ApplicationDbContext.Tags.Find(Id);
+            if (_tag != null)
             {
-                ViewBag.Userid = _user.Userid;
-                return View(tags);
+                ViewBag.UserId = _user.Email;
+                return View("ListAll", GetApprovedImages(_tag.Images));
+            }
+            else
+                return RedirectToAction("Error", "Home", new { errid = "ListByTag" });
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Approver")]
+        public ActionResult Approve()
+        {
+            SetIsAda();
+            ViewBag.Message = string.Empty;
+            return View(GetNonApprovedImages());
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Approver")]
+        [ValidateAntiForgeryToken]
+        public ActionResult Approve(IList<SelectImageViewModel> model)
+        {
+            SetIsAda();
+            ViewBag.Message = string.Empty;
+            List<Image> _lstDeletedImages = new List<Image>();
+
+            foreach (var _item in model)
+            {
+                Image _image = ApplicationDbContext.Images.Find(_item.Id);
+                if (_image != null)
+                {
+                    if (!_image.IsApproved && _item.IsApproved && _item.IsDeleted)
+                    {
+                        ApplicationDbContext.Images.Find(_item.Id).IsApproved = true;
+                        ViewBag.Message = "Image(s) approved";
+                    }
+                    else if (!_image.IsApproved && !_item.IsApproved && _item.IsDeleted)
+                        _lstDeletedImages.Add(_image);
+                }
             }
 
+            ApplicationDbContext.Images.RemoveRange(_lstDeletedImages);
+
+            foreach (var _image in _lstDeletedImages)
+            {
+                string _strImageFileName = Server.MapPath($"~/Content/Images/img-{_image.Id}.jpg");
+                System.IO.File.Delete(_strImageFileName);
+            }
+
+            ApplicationDbContext.SaveChanges();
+            ViewBag.SuccessMessage = "Images are approved/deleted successfully";
+            return View(GetNonApprovedImages());
+        }
+
+        private List<SelectImageViewModel> GetNonApprovedImages()
+        {
+            List<SelectImageViewModel> _lstModel = (from _dat in ApplicationDbContext.Images
+                                                    where !_dat.IsApproved
+                                                    select new SelectImageViewModel(_dat.Id, _dat.Caption, _dat.IsApproved)
+                                                    ).ToList();
+            return _lstModel;
         }
     }
 }

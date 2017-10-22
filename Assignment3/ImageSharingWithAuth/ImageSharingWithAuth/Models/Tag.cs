@@ -11,7 +11,12 @@ namespace ImageSharingWithAuth.Models
         [Key]
         public virtual int Id { get; set; }
         [MaxLength(20)]
-        public virtual string name { get; set; }
+        public virtual string Name { get; set; }
         public virtual ICollection<Image> Images { get; set; }
+
+        public Tag(string name = "")
+        {
+            Name = name;
+        }
     }
 }

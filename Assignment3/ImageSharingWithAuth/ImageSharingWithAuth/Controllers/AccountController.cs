@@ -9,11 +9,14 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using ImageSharingWithAuth.Models;
+using System.Collections.Generic;
+using ImageSharingWithAuth.Filters;
+using ImageSharingWithAuth.DataAccessLayer;
 
 namespace ImageSharingWithAuth.Controllers
 {
     [Authorize]
-    public class AccountController : Controller
+    public class AccountController : BaseController
     {
         private ApplicationSignInManager _signInManager;
         private ApplicationUserManager _userManager;
@@ -22,7 +25,7 @@ namespace ImageSharingWithAuth.Controllers
         {
         }
 
-        public AccountController(ApplicationUserManager userManager, ApplicationSignInManager signInManager )
+        public AccountController(ApplicationUserManager userManager, ApplicationSignInManager signInManager)
         {
             UserManager = userManager;
             SignInManager = signInManager;
@@ -34,9 +37,9 @@ namespace ImageSharingWithAuth.Controllers
             {
                 return _signInManager ?? HttpContext.GetOwinContext().Get<ApplicationSignInManager>();
             }
-            private set 
-            { 
-                _signInManager = value; 
+            private set
+            {
+                _signInManager = value;
             }
         }
 
@@ -55,6 +58,7 @@ namespace ImageSharingWithAuth.Controllers
         //
         // GET: /Account/Login
         [AllowAnonymous]
+        [RequireHttps]
         public ActionResult Login(string returnUrl)
         {
             ViewBag.ReturnUrl = returnUrl;
@@ -66,8 +70,11 @@ namespace ImageSharingWithAuth.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
+        [RequireHttps]
+        [ReferenceHeader]
         public async Task<ActionResult> Login(LoginViewModel model, string returnUrl)
         {
+            SetIsAda();
             if (!ModelState.IsValid)
             {
                 return View(model);
@@ -79,7 +86,15 @@ namespace ImageSharingWithAuth.Controllers
             switch (result)
             {
                 case SignInStatus.Success:
-                    return RedirectToLocal(returnUrl);
+                    ApplicationUser _user = UserManager.FindByName(model.Email);
+                    if (_user.IsActive)
+                    {
+                        SaveCookie(_user.ADA);
+                        return RedirectToLocal(returnUrl);
+                    }
+                    else
+                        return LogOff();
+                //return RedirectToLocal(returnUrl);
                 case SignInStatus.LockedOut:
                     return View("Lockout");
                 case SignInStatus.RequiresVerification:
@@ -120,7 +135,7 @@ namespace ImageSharingWithAuth.Controllers
             // If a user enters incorrect codes for a specified amount of time then the user account 
             // will be locked out for a specified amount of time. 
             // You can configure the account lockout settings in IdentityConfig
-            var result = await SignInManager.TwoFactorSignInAsync(model.Provider, model.Code, isPersistent:  model.RememberMe, rememberBrowser: model.RememberBrowser);
+            var result = await SignInManager.TwoFactorSignInAsync(model.Provider, model.Code, isPersistent: model.RememberMe, rememberBrowser: model.RememberBrowser);
             switch (result)
             {
                 case SignInStatus.Success:
@@ -137,8 +152,10 @@ namespace ImageSharingWithAuth.Controllers
         //
         // GET: /Account/Register
         [AllowAnonymous]
+        [RequireHttps]
         public ActionResult Register()
         {
+            SetIsAda();
             return View();
         }
 
@@ -147,16 +164,19 @@ namespace ImageSharingWithAuth.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
+        [RequireHttps]
+        [ReferenceHeader]
         public async Task<ActionResult> Register(RegisterViewModel model)
         {
+            SetIsAda();
             if (ModelState.IsValid)
             {
                 var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
                 var result = await UserManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
-                    await SignInManager.SignInAsync(user, isPersistent:false, rememberBrowser:false);
-                    
+                    await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
+
                     // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=320771
                     // Send an email with this link
                     // string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
@@ -172,11 +192,53 @@ namespace ImageSharingWithAuth.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public ActionResult Deactivate()
+        {
+            SetIsAda();
+            ViewBag.Message = string.Empty;
+            return View(GetUsers());
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
+        public ActionResult Deactivate(IList<SelectItemViewModel> model)
+        {
+            SetIsAda();
+            ViewBag.Message = string.Empty;
+
+            using (ApplicationDbContext _dbContext = new ApplicationDbContext())
+            {
+                foreach (var _item in model)
+                {
+                    ApplicationUser _user = _dbContext.Users.Find(_item.Id);
+                    if (_user != null)
+                    {
+                        if (_user.IsActive && _item.IsActive)
+                        {
+                            List<Image> _userImages = _user.Images.ToList<Image>();
+                            foreach (var _image in _userImages)
+                                _dbContext.Images.Remove(_image);
+                            _dbContext.Users.Find(_item.Id).IsActive = false;
+                        }
+                        else
+                            _dbContext.Users.Find(_item.Id).IsActive = true;
+                    }
+                }
+                _dbContext.SaveChanges();
+                ViewBag.Message = $"User(s) updated successfully!";
+            }
+            return View(GetUsers());
+        }
+
         //
         // GET: /Account/ConfirmEmail
         [AllowAnonymous]
         public async Task<ActionResult> ConfirmEmail(string userId, string code)
         {
+            SetIsAda();
             if (userId == null || code == null)
             {
                 return View("Error");
@@ -190,6 +252,7 @@ namespace ImageSharingWithAuth.Controllers
         [AllowAnonymous]
         public ActionResult ForgotPassword()
         {
+            SetIsAda();
             return View();
         }
 
@@ -200,6 +263,7 @@ namespace ImageSharingWithAuth.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> ForgotPassword(ForgotPasswordViewModel model)
         {
+            SetIsAda();
             if (ModelState.IsValid)
             {
                 var user = await UserManager.FindByNameAsync(model.Email);
@@ -226,6 +290,7 @@ namespace ImageSharingWithAuth.Controllers
         [AllowAnonymous]
         public ActionResult ForgotPasswordConfirmation()
         {
+            SetIsAda();
             return View();
         }
 
@@ -234,6 +299,7 @@ namespace ImageSharingWithAuth.Controllers
         [AllowAnonymous]
         public ActionResult ResetPassword(string code)
         {
+            SetIsAda();
             return code == null ? View("Error") : View();
         }
 
@@ -244,6 +310,7 @@ namespace ImageSharingWithAuth.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> ResetPassword(ResetPasswordViewModel model)
         {
+            SetIsAda();
             if (!ModelState.IsValid)
             {
                 return View(model);
@@ -268,6 +335,7 @@ namespace ImageSharingWithAuth.Controllers
         [AllowAnonymous]
         public ActionResult ResetPasswordConfirmation()
         {
+            SetIsAda();
             return View();
         }
 
@@ -278,6 +346,7 @@ namespace ImageSharingWithAuth.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult ExternalLogin(string provider, string returnUrl)
         {
+            SetIsAda();
             // Request a redirect to the external login provider
             return new ChallengeResult(provider, Url.Action("ExternalLoginCallback", "Account", new { ReturnUrl = returnUrl }));
         }
@@ -287,6 +356,7 @@ namespace ImageSharingWithAuth.Controllers
         [AllowAnonymous]
         public async Task<ActionResult> SendCode(string returnUrl, bool rememberMe)
         {
+            SetIsAda();
             var userId = await SignInManager.GetVerifiedUserIdAsync();
             if (userId == null)
             {
@@ -304,6 +374,7 @@ namespace ImageSharingWithAuth.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> SendCode(SendCodeViewModel model)
         {
+            SetIsAda();
             if (!ModelState.IsValid)
             {
                 return View();
@@ -322,6 +393,7 @@ namespace ImageSharingWithAuth.Controllers
         [AllowAnonymous]
         public async Task<ActionResult> ExternalLoginCallback(string returnUrl)
         {
+            SetIsAda();
             var loginInfo = await AuthenticationManager.GetExternalLoginInfoAsync();
             if (loginInfo == null)
             {
@@ -354,6 +426,7 @@ namespace ImageSharingWithAuth.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> ExternalLoginConfirmation(ExternalLoginConfirmationViewModel model, string returnUrl)
         {
+            SetIsAda();
             if (User.Identity.IsAuthenticated)
             {
                 return RedirectToAction("Index", "Manage");
@@ -391,6 +464,7 @@ namespace ImageSharingWithAuth.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult LogOff()
         {
+            SetIsAda();
             AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
             return RedirectToAction("Index", "Home");
         }
@@ -400,6 +474,7 @@ namespace ImageSharingWithAuth.Controllers
         [AllowAnonymous]
         public ActionResult ExternalLoginFailure()
         {
+            SetIsAda();
             return View();
         }
 
@@ -479,6 +554,16 @@ namespace ImageSharingWithAuth.Controllers
                 }
                 context.HttpContext.GetOwinContext().Authentication.Challenge(properties, LoginProvider);
             }
+        }
+        #endregion
+
+        #region Private Methods
+        private List<SelectItemViewModel> GetUsers()
+        {
+            List<SelectItemViewModel> _model = new List<SelectItemViewModel>();
+            foreach (var _item in ApplicationDbContext.Users)
+                _model.Add(new SelectItemViewModel(_item.Id, _item.Email, !_item.IsActive));
+            return _model;
         }
         #endregion
     }

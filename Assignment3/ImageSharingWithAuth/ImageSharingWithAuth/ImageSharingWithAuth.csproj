@@ -224,6 +224,7 @@
     <Compile Include="Controllers\ManageController.cs" />
     <Compile Include="DataAccessLayer\ImageDb.cs" />
     <Compile Include="DataAccessLayer\ImageDbInitializer.cs" />
+    <Compile Include="Filters\ReferenceHeaderAttribute.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -232,6 +233,8 @@
     <Compile Include="Models\Image.cs" />
     <Compile Include="Models\ImageViewModel.cs" />
     <Compile Include="Models\ManageViewModels.cs" />
+    <Compile Include="Models\SelectImageViewModel.cs" />
+    <Compile Include="Models\SelectItemViewModel.cs" />
     <Compile Include="Models\Tag.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="Models\UserViewModel.cs" />

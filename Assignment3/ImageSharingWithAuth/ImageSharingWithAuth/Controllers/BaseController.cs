@@ -1,5 +1,7 @@
 ﻿using ImageSharingWithAuth.DataAccessLayer;
 using ImageSharingWithAuth.Models;
+using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.EntityFramework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,57 +12,75 @@ namespace ImageSharingWithAuth.Controllers
 {
     public class BaseController : Controller
     {
-        ImageDb _db = new ImageDb();
-
-        public ImageDb DB
+        protected ApplicationDbContext ApplicationDbContext { get; set; }
+        protected UserManager<ApplicationUser> UserManager { get; set; }
+        protected IEnumerable<ApplicationUser> ActiveUsers
         {
-            get { return _db; }
+            get
+            {
+                return ApplicationDbContext.Users.Where(u => u.IsActive);
+            }
+        }
+        protected IEnumerable<Image> ApprovedImages
+        {
+            get
+            {
+                return GetApprovedImages(ApplicationDbContext.Images);
+            }
         }
 
-        //protected bool CheckUserRegistration
-        //{
-        //    get
-        //    {
-        //        HttpCookie _cookie = Request.Cookies["ImageSharing"];
-        //        bool _rtnVal = false;
-
-        //        if (_cookie != null)
-        //        {
-        //            if (_cookie["UserId"] != null && _cookie["UserId"] != string.Empty)
-        //                _rtnVal = true;
-        //        }
-
-        //        return _rtnVal;
-        //    }
-        //}
+        protected BaseController()
+        {
+            ApplicationDbContext = new ApplicationDbContext();
+            UserManager = new UserManager<ApplicationUser>(new UserStore<ApplicationUser>(ApplicationDbContext));
+        }
 
         protected void SetIsAda()
         {
-            HttpCookie _cookie = Request.Cookies["ImageSharing"];
-            bool _isAda = false;
-
-            if (_cookie != null)
+            try
             {
-                if (_cookie["IsAda"] != null && _cookie["IsAda"].Equals("true", StringComparison.OrdinalIgnoreCase))
-                    _isAda = true;
-            }
+                HttpCookie _cookie = Request.Cookies["ImageSharing"];
+                bool _isAda = false;
 
-            ViewBag.IsAda = _isAda;
+                if (_cookie != null)
+                {
+                    if (_cookie["IsAda"] != null && _cookie["IsAda"].Equals("true", StringComparison.OrdinalIgnoreCase))
+                        _isAda = true;
+                }
+
+                ViewBag.IsAda = _isAda;
+            }
+            catch(Exception ex)
+            {
+                RedirectToAction("Error", "Home");
+            }
         }
 
-        protected User GetLoggedInUser()
+        protected void SaveCookie(bool ADA)
         {
-            User _user = null;
-            HttpCookie cookie = Request.Cookies.Get("ImageSharing");
-            if (cookie != null && cookie["Userid"] != null)
+            HttpCookie _cookie = new HttpCookie("ImageSharing")
             {
-                string _userId = cookie["Userid"] as string;
-                if (!string.IsNullOrEmpty(_userId))
-                {
-                    _user = _db.Users.SingleOrDefault(x => x.Userid.Equals(_userId, StringComparison.OrdinalIgnoreCase));
-                }
-            }
-            return _user;
+                Expires = DateTime.Now.AddMinutes(10),
+                HttpOnly = true,
+            };
+            _cookie["ADA"] = ADA.ToString();
+            Response.Cookies.Add(_cookie);
+        }
+
+        protected IEnumerable<Image> GetApprovedImages(IEnumerable<Image> images)
+        {
+            return images.Where(i => i.IsApproved);
+        }
+
+        protected SelectList UserSelectList()
+        {
+            string _strDefaultId = GetLoggedInUser().Id;
+            return new SelectList(ActiveUsers, "Id", "UserName", _strDefaultId);
+        }
+
+        protected ApplicationUser GetLoggedInUser()
+        {
+            return UserManager.FindById(User.Identity.GetUserId());
         }
 
         protected ActionResult RedirectToLogin()
