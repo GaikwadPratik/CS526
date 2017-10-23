@@ -12,12 +12,15 @@ namespace ImageSharingWithAuth.Models
         public bool IsApproved { get; set; }
         public bool IsDeleted { get; set; }
 
-        public SelectImageViewModel(int id = -1, string caption = "", bool isApproved = false)
+        public SelectImageViewModel()
         {
-            if (id != -1)
-                Id = id;
-            if (!string.IsNullOrEmpty(caption))
-                Caption = caption;
+
+        }
+
+        public SelectImageViewModel(int id, string caption, bool isApproved)
+        {
+            Id = id;
+            Caption = caption;
             IsApproved = isApproved;
         }
     }

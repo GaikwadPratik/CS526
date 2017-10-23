@@ -10,7 +10,7 @@ using System.Web.Mvc;
 
 namespace ImageSharingWithAuth.Controllers
 {
-    public class ImagesController : BaseController
+    public class ImageController : BaseController
     {
         List<string> _lstAllowedExtensions = new List<string>()
         {
@@ -369,8 +369,12 @@ namespace ImageSharingWithAuth.Controllers
         {
             List<SelectImageViewModel> _lstModel = (from _dat in ApplicationDbContext.Images
                                                     where !_dat.IsApproved
-                                                    select new SelectImageViewModel(_dat.Id, _dat.Caption, _dat.IsApproved)
-                                                    ).ToList();
+                                                    select new SelectImageViewModel()
+                                                    {
+                                                        Id = _dat.Id,
+                                                        Caption = _dat.Caption,
+                                                        IsApproved = _dat.IsApproved
+                                                    }).ToList();
             return _lstModel;
         }
     }

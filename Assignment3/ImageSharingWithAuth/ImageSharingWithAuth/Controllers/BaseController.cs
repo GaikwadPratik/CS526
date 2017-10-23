@@ -13,7 +13,7 @@ namespace ImageSharingWithAuth.Controllers
     public class BaseController : Controller
     {
         protected ApplicationDbContext ApplicationDbContext { get; set; }
-        protected UserManager<ApplicationUser> UserManager { get; set; }
+        protected UserManager<ApplicationUser> UsersManager { get; set; }
         protected IEnumerable<ApplicationUser> ActiveUsers
         {
             get
@@ -32,7 +32,7 @@ namespace ImageSharingWithAuth.Controllers
         protected BaseController()
         {
             ApplicationDbContext = new ApplicationDbContext();
-            UserManager = new UserManager<ApplicationUser>(new UserStore<ApplicationUser>(ApplicationDbContext));
+            UsersManager = new UserManager<ApplicationUser>(new UserStore<ApplicationUser>(ApplicationDbContext));
         }
 
         protected void SetIsAda()
@@ -80,7 +80,7 @@ namespace ImageSharingWithAuth.Controllers
 
         protected ApplicationUser GetLoggedInUser()
         {
-            return UserManager.FindById(User.Identity.GetUserId());
+            return UsersManager.FindById(User.Identity.GetUserId());
         }
 
         protected ActionResult RedirectToLogin()

@@ -59,7 +59,7 @@ namespace ImageSharingWithAuth.Controllers
         // GET: /Account/Login
         [AllowAnonymous]
         [RequireHttps]
-        public ActionResult Login(string returnUrl)
+        public ActionResult Login(string returnUrl = "/Home/Index")
         {
             ViewBag.ReturnUrl = returnUrl;
             return View();

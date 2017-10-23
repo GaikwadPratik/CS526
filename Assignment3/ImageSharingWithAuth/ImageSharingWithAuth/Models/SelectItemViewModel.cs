@@ -11,12 +11,16 @@ namespace ImageSharingWithAuth.Models
         public string UserName { get; set; }
         public bool IsActive { get; set; }
         public bool Checked { get; set; }
-        public SelectItemViewModel(string id = "", string userName="", bool active =false)
+
+        public SelectItemViewModel()
         {
-            if (!string.IsNullOrEmpty(id))
-                Id = id;
-            if (!string.IsNullOrEmpty(userName))
-                UserName = userName;
+
+        }
+
+        public SelectItemViewModel(string id, string userName, bool active)
+        {
+            Id = id;
+            UserName = userName;
             IsActive = active;
         }
     }

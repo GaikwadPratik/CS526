@@ -10,6 +10,7 @@ namespace ImageSharingWithAuth.Controllers
     public class HomeController : BaseController
     {
         [AllowAnonymous]
+        [RequireHttps]
         public ActionResult Index(string id = "Stranger")
         {
             SetIsAda();
