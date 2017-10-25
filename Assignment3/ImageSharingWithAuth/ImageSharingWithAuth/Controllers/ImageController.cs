@@ -115,7 +115,7 @@ namespace ImageSharingWithAuth.Controllers
                     TagName = _image.Tag.Name,
                     UserId = _image.User.Email
                 };
-                return View(_image);
+                return View(_imageViewModel);
             }
             else
                 return View((ImageViewModel)null);
@@ -129,7 +129,7 @@ namespace ImageSharingWithAuth.Controllers
             if (_image != null)
             {
                 ApplicationUser _user = GetLoggedInUser();
-                if (_image.User.UserName.Equals(_user.Email, StringComparison.OrdinalIgnoreCase))
+                if (_image.User.Email.Equals(_user.Email, StringComparison.OrdinalIgnoreCase))
                 {
                     ViewBag.Message = string.Empty;
                     ViewBag.Tags = new SelectList(ApplicationDbContext.Tags, "Id", "Name", _image.TagId);
@@ -141,7 +141,7 @@ namespace ImageSharingWithAuth.Controllers
                         Description = _image.Description,
                         DateTaken = _image.DateTaken
                     };
-                    return View("Edit", _image);
+                    return View("Edit", _imageViewModel);
                 }
                 else
                     return RedirectToAction("Error", "Home", new { errid = "EditNotAuth" });
@@ -166,7 +166,7 @@ namespace ImageSharingWithAuth.Controllers
                 ViewBag.Tags = new SelectList(ApplicationDbContext.Tags, "Id", "Name", _image.TagId);
                 if (ModelState.IsValid)
                 {
-                    if (_image.User.UserName.Equals(_user.Email))
+                    if (_image.User.Email.Equals(_user.Email))
                     {
                         ViewBag.Message = string.Empty;
                         _image.TagId = ImageViewModel.TagId;
@@ -238,11 +238,12 @@ namespace ImageSharingWithAuth.Controllers
                     Image _image = ApplicationDbContext.Images.Find(Id);
                     if (_image != null)
                     {
-                        if (_image.User.UserName.Equals(_user.Email, StringComparison.OrdinalIgnoreCase))
+                        if (_image.User.Email.Equals(_user.Email, StringComparison.OrdinalIgnoreCase))
                         {
                             ApplicationDbContext.Images.Remove(_image);
                             ApplicationDbContext.SaveChanges();
                             string _strFileName = Server.MapPath($"~/Content/Images/img-{_image.Id}.jpg");
+                            System.IO.File.Delete(_strFileName);
                             return RedirectToAction("Index", "Home");
                         }
                         else
@@ -342,7 +343,7 @@ namespace ImageSharingWithAuth.Controllers
                 Image _image = ApplicationDbContext.Images.Find(_item.Id);
                 if (_image != null)
                 {
-                    if (!_image.IsApproved && _item.IsApproved && _item.IsDeleted)
+                    if (!_image.IsApproved && _item.IsApproved && !_item.IsDeleted)
                     {
                         ApplicationDbContext.Images.Find(_item.Id).IsApproved = true;
                         ViewBag.Message = "Image(s) approved";

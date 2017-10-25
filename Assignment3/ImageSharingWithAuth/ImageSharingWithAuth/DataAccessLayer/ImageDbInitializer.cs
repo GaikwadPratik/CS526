@@ -22,31 +22,31 @@ namespace ImageSharingWithAuth.DataAccessLayer
             IdentityResult _identityResult = null;
 
             ApplicationUser _nobody = new ApplicationUser() { Email = "nobody@test.com", UserName = "nobody@test.com" };
-            ApplicationUser _testUser = new ApplicationUser() { Email = "testUser@test.com", UserName = "testUser@test.com" };
-            ApplicationUser _testUser2 = new ApplicationUser() { Email = "testUser2@test.com", UserName = "testUser2@test.com" };
+            ApplicationUser _applicationUser = new ApplicationUser() { Email = "approver@test.com", UserName = "approver@test.com" };
+            ApplicationUser _adminUser = new ApplicationUser() { Email = "admin@test.com", UserName = "admin@test.com" };
 
             _identityResult = _userManager.Create(_nobody, "test1234");
-            _identityResult = _userManager.Create(_testUser, "test1234");
-            _identityResult = _userManager.Create(_testUser2, "test1234");
+            _identityResult = _userManager.Create(_applicationUser, "test1234");
+            _identityResult = _userManager.Create(_adminUser, "test1234");
 
             string _strUserRole = "User";
             _identityResult = _roleManager.Create(new IdentityRole(_strUserRole));
             if (!_userManager.IsInRole(_nobody.Id, _strUserRole))
                 _identityResult = _userManager.AddToRole(_nobody.Id, _strUserRole);
-            if (!_userManager.IsInRole(_testUser.Id, _strUserRole))
-                _identityResult = _userManager.AddToRole(_testUser.Id, _strUserRole);
-            if (!_userManager.IsInRole(_testUser2.Id, _strUserRole))
-                _identityResult = _userManager.AddToRole(_testUser2.Id, _strUserRole);
+            if (!_userManager.IsInRole(_applicationUser.Id, _strUserRole))
+                _identityResult = _userManager.AddToRole(_applicationUser.Id, _strUserRole);
+            if (!_userManager.IsInRole(_adminUser.Id, _strUserRole))
+                _identityResult = _userManager.AddToRole(_adminUser.Id, _strUserRole);
 
             string _strAdminRole = "Admin";
             _identityResult = _roleManager.Create(new IdentityRole(_strAdminRole));
-            if (!_userManager.IsInRole(_testUser2.Id, _strAdminRole))
-                _identityResult = _userManager.AddToRole(_testUser2.Id, _strAdminRole);
+            if (!_userManager.IsInRole(_adminUser.Id, _strAdminRole))
+                _identityResult = _userManager.AddToRole(_adminUser.Id, _strAdminRole);
 
             string _strApproverRole = "Approver";
             _identityResult = _roleManager.Create(new IdentityRole(_strApproverRole));
-            if (!_userManager.IsInRole(_testUser.Id, _strApproverRole))
-                _identityResult = _userManager.AddToRole(_testUser.Id, _strApproverRole);
+            if (!_userManager.IsInRole(_applicationUser.Id, _strApproverRole))
+                _identityResult = _userManager.AddToRole(_applicationUser.Id, _strApproverRole);
 
             db.Tags.Add(new Tag { Name = "Festival" });
             db.Tags.Add(new Tag { Name = "SocialMediaUploads" });
@@ -63,7 +63,7 @@ namespace ImageSharingWithAuth.DataAccessLayer
                 Caption = "India's biggest Festival.",
                 Description = "This is India's biggest festival. This is festival of colors and light.",
                 DateTaken = new DateTime(2015, 12, 23),
-                UserId = _testUser.Id,
+                UserId = _applicationUser.Id,
                 TagId = 1,
                 IsApproved = false
             });

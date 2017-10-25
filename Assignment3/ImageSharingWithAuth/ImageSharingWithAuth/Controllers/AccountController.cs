@@ -171,7 +171,7 @@ namespace ImageSharingWithAuth.Controllers
             SetIsAda();
             if (ModelState.IsValid)
             {
-                var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
+                var user = new ApplicationUser { UserName = model.Email, Email = model.Email, ADA = model.ADA, IsActive = true };
                 var result = await UserManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
@@ -209,27 +209,29 @@ namespace ImageSharingWithAuth.Controllers
             SetIsAda();
             ViewBag.Message = string.Empty;
 
-            using (ApplicationDbContext _dbContext = new ApplicationDbContext())
+
+            foreach (var _item in model)
             {
-                foreach (var _item in model)
+                ApplicationUser _user = ApplicationDbContext.Users.Find(_item.Id);
+                if (_user != null)
                 {
-                    ApplicationUser _user = _dbContext.Users.Find(_item.Id);
-                    if (_user != null)
+                    if (_user.IsActive && _item.IsActive)
                     {
-                        if (_user.IsActive && _item.IsActive)
-                        {
-                            List<Image> _userImages = _user.Images.ToList<Image>();
-                            foreach (var _image in _userImages)
-                                _dbContext.Images.Remove(_image);
-                            _dbContext.Users.Find(_item.Id).IsActive = false;
-                        }
-                        else
-                            _dbContext.Users.Find(_item.Id).IsActive = true;
+                        List<Image> _userImages = _user.Images.ToList<Image>();
+                        foreach (var _image in _userImages)
+                            ApplicationDbContext.Images.Remove(_image);
+                        ApplicationDbContext.Users.Find(_item.Id).IsActive = false;
                     }
+                    else if (!_user.IsActive && !_item.IsActive)
+                    {
+                        ApplicationDbContext.Users.Find(_item.Id).IsActive = true;
+                    }
+
                 }
-                _dbContext.SaveChanges();
-                ViewBag.Message = $"User(s) updated successfully!";
             }
+            ApplicationDbContext.SaveChanges();
+            ViewBag.Message = $"User(s) updated successfully!";
+
             return View(GetUsers());
         }
 
@@ -415,7 +417,7 @@ namespace ImageSharingWithAuth.Controllers
                     // If the user does not have an account, then prompt the user to create an account
                     ViewBag.ReturnUrl = returnUrl;
                     ViewBag.LoginProvider = loginInfo.Login.LoginProvider;
-                    return View("ExternalLoginConfirmation", new ExternalLoginConfirmationViewModel { Email = loginInfo.Email });
+                    return View("ExternalLoginConfirmation", new ExternalLoginConfirmationViewModel { UserName = loginInfo.DefaultUserName, Email = loginInfo.Email });
             }
         }
 
@@ -440,7 +442,7 @@ namespace ImageSharingWithAuth.Controllers
                 {
                     return View("ExternalLoginFailure");
                 }
-                var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
+                var user = new ApplicationUser { UserName = model.UserName, Email = model.Email };
                 var result = await UserManager.CreateAsync(user);
                 if (result.Succeeded)
                 {
@@ -560,9 +562,16 @@ namespace ImageSharingWithAuth.Controllers
         #region Private Methods
         private List<SelectItemViewModel> GetUsers()
         {
-            List<SelectItemViewModel> _model = new List<SelectItemViewModel>();
-            foreach (var _item in ApplicationDbContext.Users)
-                _model.Add(new SelectItemViewModel(_item.Id, _item.Email, !_item.IsActive));
+            ApplicationUser _user = GetLoggedInUser();
+            List<SelectItemViewModel> _model = (from _dat in ApplicationDbContext.Users
+                                                where _dat.IsActive
+                                                && !_dat.Email.Equals(_user.Email, StringComparison.OrdinalIgnoreCase)
+                                                select new SelectItemViewModel()
+                                                {
+                                                    Id = _dat.Id,
+                                                    UserName = _dat.Email,
+                                                    IsActive = _dat.IsActive
+                                                }).ToList();
             return _model;
         }
         #endregion

@@ -1,4 +1,4 @@
-﻿@model ImageSharingWithAuth.Models.ImageView
+﻿@model ImageSharingWithAuth.Models.ImageViewModel
 
 @{
     ViewBag.Title = "Delete Image";
@@ -6,7 +6,7 @@
 
 <h2>Delete</h2>
 
-@{ Html.BeginForm("Deactivate", "Image", FormMethod.Post);}
+@{ Html.BeginForm("Delete", "Image", FormMethod.Post);}
 
 <fieldset>
 

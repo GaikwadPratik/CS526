@@ -6,18 +6,18 @@
 
 <h2>@ViewBag.Title</h2>
 
-@{ Html.BeginForm("DoListByTag", "Image", FormMethod.Get); }
+@using (Html.BeginForm("DoListByTag", "Image", FormMethod.Get))
+{
+    <fieldset>
+        <legend>Choose a tag</legend>
+        <p>
+            Tag: @Html.DropDownList("Id", Model)
+        </p>
+        <p>
+            <input type="submit" value="Query" />
+        </p>
+    </fieldset>
 
-<fieldset>
-    <legend>Choose a tag</legend>
-    <p>
-        Tag: @Html.DropDownList("Id", Model)
-    </p>
-    <p>
-        <input type="submit" value="Query" />
-    </p>
-</fieldset>
+    <p>@ViewBag.Message</p>
 
-<p>@ViewBag.Message</p>
-
-@{ Html.EndForm(); }
+}

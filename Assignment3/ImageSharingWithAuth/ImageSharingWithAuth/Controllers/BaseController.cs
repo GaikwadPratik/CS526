@@ -69,7 +69,7 @@ namespace ImageSharingWithAuth.Controllers
 
         protected IEnumerable<Image> GetApprovedImages(IEnumerable<Image> images)
         {
-            return images.Where(i => i.IsApproved);
+            return images.Where(i => i.IsApproved).ToList();
         }
 
         protected SelectList UserSelectList()

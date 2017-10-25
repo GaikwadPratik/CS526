@@ -4,38 +4,37 @@
 
 <h2>@ViewBag.Title</h2>
 
-@{ Html.BeginForm("Upload", "Image", FormMethod.Post,
-                                               new { enctype = "multipart/form-data" }); }
-<p>Image Uploaded Successfully.</p>
+@using (Html.BeginForm("Upload", "Image", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    <p>@ViewBag.SuccessMessages</p>
+    <fieldset>
+        @Html.AntiForgeryToken()
+        <legend>Enter Image Information</legend>
+        <p>
+            Caption: @Html.TextBox("Caption")
+            @Html.ValidationMessage("Caption")
+        </p>
+        <p>Select a tag: @Html.DropDownList("TagId", ViewBag.Tags as SelectList) </p>
+        <p>
+            Description:<br />
+            @Html.TextArea("Description",
+                             "Enter description here.", 5, 40, null)
+            @Html.ValidationMessage("Description")
+        </p>
+        <p>
+            Date taken: @Html.TextBox("DateTaken")
+            @Html.ValidationMessage("DateTaken")
+        </p>
+        <p>
+            <input type="file" name="ImageFile" accept=".jpg" style="width:70%" />
+        </p>
+        <p>
+            <input type="submit" value="Upload" />
+        </p>
+    </fieldset>
 
-<fieldset>
-    @Html.AntiForgeryToken()
-    <legend>Enter Image Information</legend>
-    <p>
-        Caption: @Html.TextBox("Caption")
-                 @Html.ValidationMessage("Caption")
-    </p>
-    <p>Select a tag: @Html.DropDownList("TagId", ViewBag.Tags as SelectList) </p>
-    <p>
-        Description:<br />
-        @Html.TextArea("Description",
-                        "Enter description here.", 5, 40, null)
-        @Html.ValidationMessage("Description")
-    </p>
-    <p>
-        Date taken: @Html.TextBox("DateTaken")
-                    @Html.ValidationMessage("DateTaken")
-    </p>
-    <p>
-        <input type="file" name="ImageFile" accept=".jpg" style="width:70%" />
-    </p>
-    <p>
-        <input type="submit" value="Upload" />
-    </p>
-</fieldset>
+    <p>@ViewBag.ImageValidation</p>
 
-<p>@ViewBag.ImageValidation</p>
+    <p>@Html.ValidationSummary()</p>
 
-<p>@Html.ValidationSummary()</p>
-
-@{ Html.EndForm(); }
+}

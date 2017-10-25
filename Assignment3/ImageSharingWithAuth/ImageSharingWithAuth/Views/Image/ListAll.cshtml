@@ -35,7 +35,7 @@
 
                         @Html.ActionLink("Details", "Details", new { Id = image.Id })
                         @if (ViewBag.UserId.Equals(image.User.Email))
-                    {
+                        {
                             <text>
                                 @Html.ActionLink("Edit", "Edit", new { Id = image.Id })
                                 @Html.ActionLink("Delete", "Delete", new { Id = image.Id })
