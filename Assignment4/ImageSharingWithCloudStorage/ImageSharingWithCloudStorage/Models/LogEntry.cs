@@ -19,10 +19,9 @@ namespace ImageSharingWithCloudStorage.Models
 
         }
 
-        public LogEntry(int? imageId)
+        public LogEntry(int nImageId)
         {
-            if (imageId != null && imageId.HasValue)
-                CreateKeys(imageId.Value);
+            CreateKeys(nImageId);
         }
 
         public DateTime EntryDate { get; set; }
