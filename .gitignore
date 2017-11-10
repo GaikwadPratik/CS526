@@ -55,3 +55,5 @@ Assignment1/ImageSharingWithUpload/packages/*
 Assignment2/ImageSharingWithModel/packages/*
 Assignment3/ImageSharingWithAuth/packages/*
 Assignment4/ImageSharingWithCloudStorage/packages/*
+*.ide-shm
+Assignment4/ImageSharingWithCloudStorage/.vs/*
