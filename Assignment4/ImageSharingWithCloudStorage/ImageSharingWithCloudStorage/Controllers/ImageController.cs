@@ -41,34 +41,35 @@ namespace ImageSharingWithCloudStorage.Controllers
             {
                 ApplicationUser _user = GetLoggedInUser();
                 if (_user != null)
-                {
-                    Image _image = new Models.Image()
+                {                    
+                    if (ImageFile != null)
                     {
-                        DateTaken = Image.DateTaken,
-                        Caption = Image.Caption,
-                        Description = Image.Description,
-                        User = _user,
-                        TagId = Image.TagId
-                    };
+                        Image _image = new Image()
+                        {
+                            DateTaken = Image.DateTaken,
+                            Caption = Image.Caption,
+                            Description = Image.Description,
+                            User = _user,
+                            TagId = Image.TagId
+                        };                        
 
-                    if (ImageFile != null && ImageFile.ContentLength > 0 && ((double)ImageFile.ContentLength / (1024 * 1024)) > _dSize)
-                    {
                         if (!_lstAllowedExtensions.Any(item => ImageFile.FileName.EndsWith(item, StringComparison.OrdinalIgnoreCase)))
                         {
                             ViewBag.ImageValidation = "File type must be jpg or jpeg";
                             return View();
                         }
 
+                        if (ImageFile.ContentLength > 0 && ((double)ImageFile.ContentLength / (1024 * 1024)) > _dSize)
+                        {
+                            ViewBag.ImageValidation = "Upload smaller file";
+                            return View();
+                        }
+
                         ApplicationDbContext.Images.Add(_image);
                         ApplicationDbContext.SaveChanges();
 
-                        string _strImageFileName = Server.MapPath($"~/Content/Images/img-{_image.Id}.jpg");
-                        ImageFile.SaveAs(_strImageFileName);
-
-                        ViewBag.tags = new SelectList(ApplicationDbContext.Tags, "Id", "Name", 1);
-                        ViewBag.SuccessMessages = "Upload Successful";
-                        ModelState.Clear();
-                        return View();
+                        ImageStorage.SaveFile(Server, ImageFile, _image.Id);
+                        return RedirectToAction("Details", new { Id = _image.Id });
                     }
                     else
                     {
