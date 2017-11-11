@@ -41,8 +41,7 @@ namespace ImageSharingWithCloudStorage.DataAccessLayer
 
         protected static CloudTableClient GetClient()
         {
-            CloudStorageAccount account =
-                CloudStorageAccount.Parse(ConfigurationManager.AppSettings["StorageConnectionString"]);
+            CloudStorageAccount account = CloudStorageAccount.Parse(ConfigurationManager.AppSettings["StorageConnectionString"]);
             CloudTableClient client = account.CreateCloudTableClient();
             return client;
         }
@@ -58,26 +57,26 @@ namespace ImageSharingWithCloudStorage.DataAccessLayer
         // Delete the log Details
         public static bool DeleteLog()
         {
-            
-             CloudTableClient client = GetClient();
-             CloudTable table = client.GetTableReference(LOG_TABLE_NAME);
 
-             TableBatchOperation DeleteBatch = new TableBatchOperation();
+            CloudTableClient client = GetClient();
+            CloudTable table = client.GetTableReference(LOG_TABLE_NAME);
 
-             TableContinuationToken token = null;
-             var entities = new List<LogEntry>();
-             do
-             {
-                 var queryResult = table.ExecuteQuerySegmented(new TableQuery<LogEntry>(), token);
-                 entities.AddRange(queryResult.Results);
-                 token = queryResult.ContinuationToken;
-             } while (token != null);
-             if (DeleteBatch.Count > 0)
-             {
-                 table.ExecuteBatch(DeleteBatch);
-                 return true;
-             }
-             else return false;
+            TableBatchOperation DeleteBatch = new TableBatchOperation();
+
+            TableContinuationToken token = null;
+            var entities = new List<LogEntry>();
+            do
+            {
+                var queryResult = table.ExecuteQuerySegmented(new TableQuery<LogEntry>(), token);
+                entities.AddRange(queryResult.Results);
+                token = queryResult.ContinuationToken;
+            } while (token != null);
+            if (DeleteBatch.Count > 0)
+            {
+                table.ExecuteBatch(DeleteBatch);
+                return true;
+            }
+            else return false;
             //return false;
         }
     }

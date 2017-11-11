@@ -24,11 +24,9 @@ namespace ImageSharingWithCloudStorage.DataAccessLayer
         public static string CONTAINER = ConfigurationManager.AppSettings["Container"];
 
         // Give access details to save images.
-        public static void SaveFile(HttpServerUtilityBase server,
-                                    HttpPostedFileBase imageFile,
-                                    int imageId)
+        public static void SaveFile(HttpServerUtilityBase server, HttpPostedFileBase imageFile, int imageId)
         {
-            if(USE_BLOB_STORAGE)
+            if (USE_BLOB_STORAGE)
             {
                 StorageCredentials credentials = new StorageCredentials(ACCOUNT, AccountKey);
                 CloudStorageAccount cs = new CloudStorageAccount(credentials, true);
@@ -45,7 +43,7 @@ namespace ImageSharingWithCloudStorage.DataAccessLayer
             }
         }
 
-        public static string FilePath(HttpServerUtilityBase server,int imageId)
+        public static string FilePath(HttpServerUtilityBase server, int imageId)
         {
             if (USE_BLOB_STORAGE)
             {
@@ -82,7 +80,7 @@ namespace ImageSharingWithCloudStorage.DataAccessLayer
             {
                 StorageCredentials credentials = new StorageCredentials(ACCOUNT, AccountKey);
                 CloudStorageAccount cs = new CloudStorageAccount(credentials, true);
-                CloudStorageAccount account =CloudStorageAccount.Parse(ConfigurationManager.AppSettings["StorageConnectionString"]);
+                CloudStorageAccount account = CloudStorageAccount.Parse(ConfigurationManager.AppSettings["StorageConnectionString"]);
                 CloudBlobClient client = account.CreateCloudBlobClient();
                 CloudBlobContainer container = client.GetContainerReference(CONTAINER);
                 System.Threading.Tasks.Parallel.ForEach(container.ListBlobs().Where(y => y.Uri.Segments.Last() != "1.jpg"), x => ((CloudBlob)x).Delete());
@@ -99,7 +97,7 @@ namespace ImageSharingWithCloudStorage.DataAccessLayer
                 CloudStorageAccount account = CloudStorageAccount.Parse(ConfigurationManager.AppSettings["StorageConnectionString"]);
                 CloudBlobClient client = account.CreateCloudBlobClient();
                 CloudBlobContainer container = client.GetContainerReference(CONTAINER);
-                foreach (var item in lstImageIds){container.GetBlockBlobReference(FilePath(server, item)).DeleteIfExists();}
+                foreach (var item in lstImageIds) { container.GetBlockBlobReference(FilePath(server, item)).DeleteIfExists(); }
             }
             return true;
         }
