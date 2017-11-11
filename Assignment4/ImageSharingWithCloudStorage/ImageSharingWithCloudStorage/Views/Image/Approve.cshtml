@@ -2,9 +2,51 @@
 @{
     ViewBag.Title = "Approve Images";
 }
+
+<h2>@ViewBag.Title</h2>
+
+<p style="font-weight:bold;color:blue">
+    @ViewBag.SuccessMessage
+</p>
+<br />
+@using (Html.BeginForm("Approve", "Image", FormMethod.Post))
+{
+    <fieldset>
+        @Html.AntiForgeryToken()
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>
+                        Approve
+                    </th>
+                    <th>Delete</th>
+                    <th>Caption</th>
+                </tr>
+            </thead>
+            @for (var i = 0; i < Model.Count; i++)
+            {
+                <tr>
+                    <td>
+                        @Html.HiddenFor(x => x[i].Id)
+                        @Html.CheckBoxFor(x => x[i].IsApproved, new { @class = "chkApproved" })
+                    </td>
+                    <td>
+                        @Html.CheckBoxFor(x => x[i].IsDeleted, new { @class = "chkDelete" })
+                    </td>
+                    <td>
+                        @Html.DisplayFor(x => x[i].Caption)
+                    </td>
+                </tr>
+            }
+        </table>
+        <br />
+        <input type="submit" value="Submit" />
+    </fieldset>
+}
+
 @section scripts
 {
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    @Scripts.Render("~/bundles/jqueryval")
     <script type="text/javascript">
 
         $(".chkApproved").change(function () {
@@ -21,43 +63,3 @@
 
     </script>
 }
-
-<h2>@ViewBag.Title</h2>
-
-<p style="font-weight:bold;color:blue">
-    @ViewBag.SuccessMessage
-</p>
-<br />
-@{ Html.BeginForm("Approve", "Image", FormMethod.Post); }
-<fieldset>
-    @Html.AntiForgeryToken()
-    <table border="1">
-        <thead>
-            <tr>
-                <th>
-                    Approve
-                </th>
-                <th>Delete</th>
-                <th>Caption</th>
-            </tr>
-        </thead>
-        @for (var i = 0; i < Model.Count; i++)
-        {
-            <tr>
-                <td>
-                    @Html.HiddenFor(x => x[i].Id)
-                    @Html.CheckBoxFor(x => x[i].IsApproved, new { @class = "chkApproved" })
-                </td>
-                <td>
-                    @Html.CheckBoxFor(x => x[i].IsDeleted, new { @class = "chkDelete" })
-                </td>
-                <td>
-                    @Html.DisplayFor(x => x[i].Caption)
-                </td>
-            </tr>
-        }
-    </table>
-    <br />
-    <input type="submit" value="Submit" />
-</fieldset>
-@{ Html.EndForm(); }
