@@ -9,7 +9,7 @@ using System.Web;
 
 namespace ImageSharingWithCloudStorage.DataAccessLayer
 {
-    public class ImageDbInitializer:DropCreateDatabaseAlways<ApplicationDbContext>
+    public class ImageDbInitializer : DropCreateDatabaseAlways<ApplicationDbContext>
     {
         public override void InitializeDatabase(ApplicationDbContext db)
         {
@@ -36,23 +36,23 @@ namespace ImageSharingWithCloudStorage.DataAccessLayer
             ApplicationUser _applicationUser = new ApplicationUser() { Email = "approver@test.com", UserName = "approver@test.com" };
             ApplicationUser _adminUser = new ApplicationUser() { Email = "admin@test.com", UserName = "admin@test.com" };
             ApplicationUser _supervisorUser = new ApplicationUser() { Email = "supervisor@test.com", UserName = "supervisor@test.com" };
-			
+
             _identityResult = _userManager.Create(_nobody, "test1234");
             _identityResult = _userManager.Create(_applicationUser, "test1234");
             _identityResult = _userManager.Create(_adminUser, "test1234");
-_identityResult = _userManager.Create(_supervisorUser, "test1234");
+            _identityResult = _userManager.Create(_supervisorUser, "test1234");
             string _strUserRole = "User";
             _identityResult = _roleManager.Create(new IdentityRole(_strUserRole));
             if (!_userManager.IsInRole(_nobody.Id, _strUserRole))
                 _identityResult = _userManager.AddToRole(_nobody.Id, _strUserRole);
-if (!_userManager.IsInRole(_applicationUser.Id, _strUserRole))
+            if (!_userManager.IsInRole(_applicationUser.Id, _strUserRole))
                 _identityResult = _userManager.AddToRole(_applicationUser.Id, _strUserRole);
             if (!_userManager.IsInRole(_adminUser.Id, _strUserRole))
                 _identityResult = _userManager.AddToRole(_adminUser.Id, _strUserRole);
 
             if (!_userManager.IsInRole(_supervisorUser.Id, _strUserRole))
                 _identityResult = _userManager.AddToRole(_supervisorUser.Id, _strUserRole);
-				
+
             if (!_userManager.IsInRole(_adminUser.Id, _strUserRole))
                 _identityResult = _userManager.AddToRole(_adminUser.Id, _strUserRole);
 
@@ -66,7 +66,7 @@ if (!_userManager.IsInRole(_applicationUser.Id, _strUserRole))
             if (!_userManager.IsInRole(_applicationUser.Id, _strApproverRole))
                 _identityResult = _userManager.AddToRole(_applicationUser.Id, _strApproverRole);
 
-string _strSupervisorRole = "Supervisor";
+            string _strSupervisorRole = "Supervisor";
             _identityResult = _roleManager.Create(new IdentityRole(_strSupervisorRole));
             if (!_userManager.IsInRole(_supervisorUser.Id, _strSupervisorRole))
                 _identityResult = _userManager.AddToRole(_supervisorUser.Id, _strSupervisorRole);
