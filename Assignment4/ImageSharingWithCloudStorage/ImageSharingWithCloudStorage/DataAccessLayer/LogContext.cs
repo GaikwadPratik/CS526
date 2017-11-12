@@ -18,7 +18,7 @@ namespace ImageSharingWithCloudStorage.DataAccessLayer
     {
         public const string LOG_TABLE_NAME = "imageviews";
 
-        public static void addLogEntry(string user, ImageViewModel image)
+        public static void AddLogEntry(string user, ImageViewModel image)
         {
             LogEntry entry = new LogEntry(image.Id);
             entry.UserId = user;
@@ -30,7 +30,7 @@ namespace ImageSharingWithCloudStorage.DataAccessLayer
             table.Execute(insertObject);
         }
 
-        public static IEnumerable<LogEntry> select(DateTime dateTaken)
+        public static IEnumerable<LogEntry> Select(DateTime dateTaken)
         {
             CloudTable table = CreateTable();
 
@@ -55,29 +55,12 @@ namespace ImageSharingWithCloudStorage.DataAccessLayer
         }
 
         // Delete the log Details
-        public static bool DeleteLog()
+        public static void DeleteLog()
         {
-
             CloudTableClient client = GetClient();
             CloudTable table = client.GetTableReference(LOG_TABLE_NAME);
-
-            TableBatchOperation DeleteBatch = new TableBatchOperation();
-
-            TableContinuationToken token = null;
-            var entities = new List<LogEntry>();
-            do
-            {
-                var queryResult = table.ExecuteQuerySegmented(new TableQuery<LogEntry>(), token);
-                entities.AddRange(queryResult.Results);
-                token = queryResult.ContinuationToken;
-            } while (token != null);
-            if (DeleteBatch.Count > 0)
-            {
-                table.ExecuteBatch(DeleteBatch);
-                return true;
-            }
-            else return false;
-            //return false;
+            if (table.Exists())
+                table.Delete();
         }
     }
 }
