@@ -68,6 +68,7 @@ namespace ImageSharingWithCloudStorage.Controllers
                         ApplicationDbContext.SaveChanges();
 
                         ImageStorage.SaveFile(Server, ImageFile, _image.Id);
+                        TempData["Preview"] = true;
                         return RedirectToAction("Details", new { Id = _image.Id });
                     }
                     else
@@ -120,7 +121,7 @@ namespace ImageSharingWithCloudStorage.Controllers
                     Uri = ImageStorage.ImageURI(Url, Id)
                 };
                 //Adding the log entry.
-                LogContext.addLogEntry(User.Identity.Name, _imageViewModel);
+                LogContext.AddLogEntry(User.Identity.Name, _imageViewModel);
                 return View(_imageViewModel);
             }
             else
@@ -303,12 +304,13 @@ namespace ImageSharingWithCloudStorage.Controllers
             ViewBag.SuccessMessage = "Images are approved/deleted successfully";
             return View(GetNonApprovedImages());
         }
+
         [HttpGet]
         [Authorize(Roles = "Supervisor")]
         public ActionResult ImageList()
         {
             SetIsAda();
-            DateTime date = DateTime.Now;
+            DateTime date = DateTime.UtcNow;
             List<SelectListItem> dateList = new List<SelectListItem>();
             for (int i = 0; i <= 13; i++)
             {
@@ -328,7 +330,7 @@ namespace ImageSharingWithCloudStorage.Controllers
         public ActionResult ImageViews(DateTime dateTaken)
         {
             SetIsAda();
-            IEnumerable<LogEntry> allentries = LogContext.select(dateTaken);
+            IEnumerable<LogEntry> allentries = LogContext.Select(dateTaken);
             List<LogEntry> PrintEntries = new List<LogEntry>();
             foreach (var i in allentries)
             { PrintEntries.Add(i); }
@@ -379,6 +381,7 @@ namespace ImageSharingWithCloudStorage.Controllers
                         {
                             ApplicationDbContext.Images.Remove(_image);
                             ApplicationDbContext.SaveChanges();
+                            ImageStorage.DeleteBlob(_image.Id, Server);
                             return RedirectToAction("Index", "Home");
                         }
                         else
