@@ -97,5 +97,19 @@ namespace ImageSharingWithCloudStorage.DataAccessLayer
             }
             return true;
         }
+
+        public static bool DeleteBlob(int nImageIds, HttpServerUtilityBase server)
+        {
+            if (USE_BLOB_STORAGE)
+            {
+                StorageCredentials credentials = new StorageCredentials(ACCOUNT, AccountKey);
+                CloudStorageAccount cs = new CloudStorageAccount(credentials, true);
+                CloudStorageAccount.TryParse(ConfigurationManager.ConnectionStrings["StorageConnectionString"].ConnectionString, out CloudStorageAccount account);
+                CloudBlobClient client = account.CreateCloudBlobClient();
+                CloudBlobContainer container = client.GetContainerReference(CONTAINER);
+                container.GetBlockBlobReference(FilePath(server, nImageIds)).DeleteIfExists();
+            }
+            return true;
+        }
     }
 }
