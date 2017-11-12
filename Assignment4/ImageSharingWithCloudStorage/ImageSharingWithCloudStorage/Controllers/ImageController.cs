@@ -41,18 +41,9 @@ namespace ImageSharingWithCloudStorage.Controllers
             {
                 ApplicationUser _user = GetLoggedInUser();
                 if (_user != null)
-                {                    
+                {
                     if (ImageFile != null)
                     {
-                        Image _image = new Image()
-                        {
-                            DateTaken = Image.DateTaken,
-                            Caption = Image.Caption,
-                            Description = Image.Description,
-                            User = _user,
-                            TagId = Image.TagId
-                        };                        
-
                         if (!_lstAllowedExtensions.Any(item => ImageFile.FileName.EndsWith(item, StringComparison.OrdinalIgnoreCase)))
                         {
                             ViewBag.ImageValidation = "File type must be jpg or jpeg";
@@ -64,6 +55,14 @@ namespace ImageSharingWithCloudStorage.Controllers
                             ViewBag.ImageValidation = "Upload smaller file";
                             return View();
                         }
+                        Image _image = new Image()
+                        {
+                            DateTaken = Image.DateTaken,
+                            Caption = Image.Caption,
+                            Description = Image.Description,
+                            User = _user,
+                            TagId = Image.TagId
+                        };
 
                         ApplicationDbContext.Images.Add(_image);
                         ApplicationDbContext.SaveChanges();
@@ -117,7 +116,8 @@ namespace ImageSharingWithCloudStorage.Controllers
                     Description = _image.Description,
                     DateTaken = _image.DateTaken,
                     TagName = _image.Tag.Name,
-                    UserId = _image.User.Email
+                    UserId = _image.User.Email,
+                    Uri = ImageStorage.ImageURI(Url, Id)
                 };
                 //Adding the log entry.
                 LogContext.addLogEntry(User.Identity.Name, _imageViewModel);

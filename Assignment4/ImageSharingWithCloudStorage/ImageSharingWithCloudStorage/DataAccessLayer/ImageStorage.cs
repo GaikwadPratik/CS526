@@ -30,10 +30,10 @@ namespace ImageSharingWithCloudStorage.DataAccessLayer
             {
                 StorageCredentials credentials = new StorageCredentials(ACCOUNT, AccountKey);
                 CloudStorageAccount cs = new CloudStorageAccount(credentials, true);
-                CloudStorageAccount account = CloudStorageAccount.Parse(ConfigurationManager.AppSettings["StorageConnectionString"]);
+                CloudStorageAccount.TryParse(ConfigurationManager.ConnectionStrings["StorageConnectionString"].ConnectionString, out CloudStorageAccount account);
                 CloudBlobClient client = account.CreateCloudBlobClient();
                 CloudBlobContainer container = client.GetContainerReference(CONTAINER);
-                CloudBlockBlob blob = container.GetBlockBlobReference(FilePath(server, imageId));
+                CloudBlockBlob blob = container.GetBlockBlobReference(FilePath(null, imageId));
                 blob.DeleteIfExists();
                 blob.UploadFromStream(imageFile.InputStream);
             }
@@ -58,20 +58,16 @@ namespace ImageSharingWithCloudStorage.DataAccessLayer
 
         public static string FileName(int imageId)
         {
-            return imageId + ".jpg";
+            return $"{imageId}.jpg";
         }
 
         // Image URI
         public static string ImageURI(UrlHelper urlHelper, int imageId)
         {
-            if (USE_BLOB_STORAGE)
-            {
-                return "http://" + ACCOUNT + ".blob.core.windows.net/" + CONTAINER + "/" + FileName(imageId);
-            }
-            else
-            {
-                return urlHelper.Content("~/Content/Images/" + FileName(imageId));
-            }
+            string _strRtnVal = USE_BLOB_STORAGE
+                ? $"https://{ACCOUNT}.blob.core.windows.net/{CONTAINER}/{ FileName(imageId)}"
+                : urlHelper.Content("~/Content/Images/" + FileName(imageId));
+            return _strRtnVal;
         }
 
         public static void DeleteAllBlob()
@@ -80,7 +76,7 @@ namespace ImageSharingWithCloudStorage.DataAccessLayer
             {
                 StorageCredentials credentials = new StorageCredentials(ACCOUNT, AccountKey);
                 CloudStorageAccount cs = new CloudStorageAccount(credentials, true);
-                CloudStorageAccount account = CloudStorageAccount.Parse(ConfigurationManager.AppSettings["StorageConnectionString"]);
+                CloudStorageAccount.TryParse(ConfigurationManager.ConnectionStrings["StorageConnectionString"].ConnectionString, out CloudStorageAccount account);
                 CloudBlobClient client = account.CreateCloudBlobClient();
                 CloudBlobContainer container = client.GetContainerReference(CONTAINER);
                 System.Threading.Tasks.Parallel.ForEach(container.ListBlobs().Where(y => y.Uri.Segments.Last() != "1.jpg"), x => ((CloudBlob)x).Delete());
@@ -94,7 +90,7 @@ namespace ImageSharingWithCloudStorage.DataAccessLayer
             {
                 StorageCredentials credentials = new StorageCredentials(ACCOUNT, AccountKey);
                 CloudStorageAccount cs = new CloudStorageAccount(credentials, true);
-                CloudStorageAccount account = CloudStorageAccount.Parse(ConfigurationManager.AppSettings["StorageConnectionString"]);
+                CloudStorageAccount.TryParse(ConfigurationManager.ConnectionStrings["StorageConnectionString"].ConnectionString, out CloudStorageAccount account);
                 CloudBlobClient client = account.CreateCloudBlobClient();
                 CloudBlobContainer container = client.GetContainerReference(CONTAINER);
                 foreach (var item in lstImageIds) { container.GetBlockBlobReference(FilePath(server, item)).DeleteIfExists(); }

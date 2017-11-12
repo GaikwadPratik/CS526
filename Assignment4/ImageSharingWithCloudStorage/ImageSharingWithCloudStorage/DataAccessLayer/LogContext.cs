@@ -41,7 +41,7 @@ namespace ImageSharingWithCloudStorage.DataAccessLayer
 
         protected static CloudTableClient GetClient()
         {
-            CloudStorageAccount account = CloudStorageAccount.Parse(ConfigurationManager.AppSettings["StorageConnectionString"]);
+            CloudStorageAccount.TryParse(ConfigurationManager.ConnectionStrings["StorageConnectionString"].ConnectionString, out CloudStorageAccount account);
             CloudTableClient client = account.CreateCloudTableClient();
             return client;
         }
