@@ -7,25 +7,11 @@
     @{
         if (ViewBag != null && ViewBag.IsAda != null && (bool)(ViewBag.IsAda))
         {
-            if (Context.IsDebuggingEnabled)
-            {
-                <link href="~/Styles/Site_ADA" rel="stylesheet" type="text/css" />
-            }
-            else
-            {
-                Styles.Render("~/Styles/Site_ADA");
-            }
+            <link href="~/Styles/Site_ADA" rel="stylesheet" type="text/css" />
         }
         else
         {
-            if (Context.IsDebuggingEnabled)
-            {
-                <link href="~/Styles/Site" rel="stylesheet" type="text/css" />
-            }
-            else
-            {
-                Styles.Render("~/Styles/Site");
-            }
+            <link href="~/Styles/Site" rel="stylesheet" type="text/css" />
         }
     }
     @Scripts.Render("~/bundles/modernizr")
@@ -48,6 +34,7 @@
                 <li>@Html.ActionLink("List by Tag", "ListByTag", "Image")</li>
                 <li>@Html.ActionLink("Deactivate", "Deactivate", "Account")</li>
                 <li>@Html.ActionLink("Approve", "Approve", "Image")</li>
+                <li>@Html.ActionLink("Supervise", "ImageList", "Image")</li>
                 <li>@Html.ActionLink("Login", "Login", "Account")</li>
             </ul>
         </nav>
@@ -58,7 +45,7 @@
             <p><a href="http://www.stevens.edu">Stevens home page</a></p>
         </aside>
         <article id="content">
-        @RenderBody()
+            @RenderBody()
         </article>
         <footer id="footer">
             <p>&copy; @DateTime.Now.Year - Image sharing upload application</p>
